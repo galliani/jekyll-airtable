@@ -1,14 +1,45 @@
-require "bundler/setup"
-require "jekyll/airtable"
+# spec_helper.rb
+$LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
+require "jekyll"
+require "jekyll-airtable"
+
+Jekyll.logger.log_level = :error
 
 RSpec.configure do |config|
-  # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = ".rspec_status"
+  config.run_all_when_everything_filtered = true
+  config.filter_run :focus
+  config.order = "random"
 
-  # Disable RSpec exposing methods globally on `Module` and `main`
-  config.disable_monkey_patching!
+  SOURCE_DIR = File.expand_path("../fixtures", __FILE__)
+  DEST_DIR   = File.expand_path("../dest", __FILE__)
 
-  config.expect_with :rspec do |c|
-    c.syntax = :expect
+  def source_dir(*files)
+    File.join(SOURCE_DIR, *files)
+  end
+
+  def dest_dir(*files)
+    File.join(DEST_DIR, *files)
+  end
+
+  CONFIG_DEFAULTS = {
+    "source"      => source_dir,
+    "destination" => dest_dir,
+    "gems"        => ["jekyll-airtable"]
+  }.freeze
+
+  def make_page(options = {})
+    page      = Jekyll::Page.new(site, CONFIG_DEFAULTS["source"], "", "page.md")
+    page.data = options
+    page
+  end
+
+  def make_site(options = {})
+    site_config = Jekyll.configuration(CONFIG_DEFAULTS.merge(options))
+    Jekyll::Site.new(site_config)
+  end
+
+  def make_context(registers = {}, environments = {})
+    Liquid::Context.new(environments, {}, 
+      { :site => site, :page => page }.merge(registers))
   end
 end
