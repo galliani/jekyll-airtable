@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 
 require "bundler/setup"
-require "jekyll/airtable"
+require relative_to_root("lib/jekyll-airtable.rb")
+require 'byebug'
 
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.
@@ -9,6 +10,29 @@ require "jekyll/airtable"
 # (If you use this, don't forget to add pry to your Gemfile!)
 # require "pry"
 # Pry.start
+
+SOURCE_DIR = relative_to_root("spec/fixtures")
+DEST_DIR   = relative_to_root("spec/dest")
+
+def source_dir(*files)
+  File.join(SOURCE_DIR, *files)
+end
+
+def dest_dir(*files)
+  File.join(DEST_DIR, *files)
+end
+
+def config(overrides = {})
+  Jekyll.configuration(
+    "source"      => source_dir,
+    "destination" => dest_dir,
+    "url"         => "http://example.org"
+  ).merge(overrides)
+end
+
+def site(configuration = config)
+  Jekyll::Site.new(configuration)
+end
 
 require "irb"
 IRB.start(__FILE__)
