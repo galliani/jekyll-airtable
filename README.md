@@ -1,8 +1,6 @@
 # Jekyll::Airtable
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/jekyll/airtable`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+This gem enables you to easily integrate Airtable with Jekyll site and use it as a database. Everytime the Jekyll build is triggered, the gem would automatically send API request to the Airtable base and tables you specify from the environment variable and then store the records as collections, grouped according to the table names.
 
 ## Installation
 
@@ -22,7 +20,10 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+1. Add this gem to the Gemfile
+2. Run ```sh bundle install ``` on the terminal
+3. Do not forget to declare it also on the config.yml, below the "gems" or "plugins" YAML key.
+4. Then you can execute the plugin using ```sh bundle exec jekyll serve ``` or ```sh bundle exec jekyll build ```
 
 ## Development
 
