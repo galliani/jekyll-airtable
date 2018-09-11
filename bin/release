@@ -1,0 +1,6 @@
+#!/bin/sh
+# Tag and push a release.
+
+set -e
+
+bundle exec rake release
