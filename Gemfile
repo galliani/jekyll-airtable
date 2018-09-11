@@ -7,5 +7,3 @@ end
 
 # Specify your gem's dependencies in jekyll-airtable.gemspec
 gemspec
-
-gem 'airtable', github: 'galliani/airtable_client'

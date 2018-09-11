@@ -1,7 +1,11 @@
 #!/usr/bin/env ruby
+def relative_to_root(path)
+  File.expand_path(path, File.dirname(__dir__))
+end
 
 require "bundler/setup"
-require relative_to_root("lib/jekyll-airtable.rb")
+require "jekyll"
+require_relative("../lib/jekyll-airtable.rb")
 require 'byebug'
 
 # You can add fixtures and/or initialization code here to make experimenting
