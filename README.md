@@ -71,6 +71,24 @@ plugins:
 
 For production, you also have to set those keys and values.
 
+9. You then need to set the collections on the ```_config.yml ``` so that Jekyll recognizes them. The snippets below here are taken from https://github.com/galliani/airbase/blob/master/_config.yml. The collections on that repo are "use_cases", "whitepapers", and "tutorials", taken from the Airtable of "Use Cases", "Whitepapers", and "Tutorials" respectively.
+
+```yml
+collections_dir: collections
+collections:
+  use_cases:
+    output: true
+  whitepapers:
+    output: true
+  tutorials:
+    output: true
+
+defaults:
+  - scope:
+      type: "whitepapers"
+    values:
+      layout: "page" # any jekyll layout file you already have in the _layouts that you want to use for this collection type.
+```
 
 ## Development
 
