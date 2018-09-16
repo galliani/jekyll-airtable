@@ -38,7 +38,8 @@ module Jekyll
           :view,
           :cell_format,
           :time_zone,
-          :user_locale
+          :user_locale,
+          :offset
         ]
 
         return nil unless keys.include?(params_key) || 
