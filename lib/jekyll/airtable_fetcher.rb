@@ -18,24 +18,27 @@ module Jekyll
       client = Airtable.client(base_uid: site.config['AIRTABLE_BASE_UID'])
 
       site.config['AIRTABLE_TABLE_NAMES'].each do |table_name|
-        records = JSON.parse(client.list_records(table_name: table_name, params: {}))
+        records = client.list_records(table_name: table_name)
         next if records.size == 0
 
-        records_as_json      = records['records']
         converted_table_name = to_snake(table_name)
         directory_name       = "collections/_" + converted_table_name
 
         Dir.mkdir(directory_name) unless File.exists?(directory_name)
 
-        records_as_json.each do |record_hash|
-          slug     = record_hash['id']
-          out_file = File.new("#{directory_name}/#{slug}.md", "w")
+        records.each do |record|
+          fields    = record['fields']
+          # We use the first field as the primary key
+          # Then find the value of the primary key to be stored as the slug, which
+          # will be used as file name and the path to the record in the url.
+          # However, if the record has field called 'slug', it will be used instead
+          pkey      = fields.keys.first
+          slug      = fields['slug'].nil? ? fields[pkey] : fields['slug']
+          uid       = record['id']
+
+          out_file  = File.new("#{directory_name}/#{slug}.md", "w")
           out_file.puts(front_matter_mark)
-
-          # Store the uid
-          out_file.puts("uid: #{slug}")
-
-          fields = record_hash['fields']
+          out_file.puts("uid: #{uid}")
 
           fields.each do |key, value|
             snake_key = to_snake(key)
