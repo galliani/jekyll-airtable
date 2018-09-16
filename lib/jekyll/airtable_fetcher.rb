@@ -11,21 +11,22 @@ module Jekyll
       return false if site.config['AIRTABLE_API_KEY'].nil? || site.config['AIRTABLE_API_KEY'] == ''
       return false if site.config['SYNC_WITH_AIRTABLE'] == 'false'
 
+      setup_directories
+      # For storing hashes of attachments that will be saved to the data file
+      @attachments_hash = {}
+
       Airtable.configure do |config|
         config.api_key = site.config['AIRTABLE_API_KEY']
       end
 
-      client = Airtable.client(base_uid: site.config['AIRTABLE_BASE_UID'])
+      client = Airtable.client(base_uid: site.config['AIRTABLE_BASE_UID'])      
 
       site.config['AIRTABLE_TABLE_NAMES'].each do |table_name|
         records = client.list_records(table_name: table_name)
         next if records.size == 0
 
-        converted_table_name = to_snake(table_name)
-        directory_name       = "collections/_" + converted_table_name
-
-        Dir.mkdir('collections') unless File.exists?('collections')
-        Dir.mkdir(directory_name) unless File.exists?(directory_name)
+        directory_name = "collections/_" + to_snake(table_name)
+        Dir.mkdir(dirname) unless File.exists?(directory_name)
 
         records.each do |record|
           fields    = record['fields']
@@ -50,6 +51,7 @@ module Jekyll
               write_array_values(out_file, value)
             else
               value = stringify_value_if_necessary(value)
+
               out_file.puts("#{snake_key}: #{value}")
             end
           end
@@ -59,6 +61,8 @@ module Jekyll
           out_file.close               
         end
       end
+
+      write_attachments_data_file
     end
 
     private
@@ -73,9 +77,18 @@ module Jekyll
 
     def write_array_values(file, array)
       array.each do |element|
-        #   - { name: 'Low', color: '#306d8c' }
-        value = stringify_value_if_necessary(element)
-        file.puts("   - #{value}")
+        if is_this_is_an_attachment?(element)
+          # Store only the uid of the attachment in the front matter
+          value = element['id'] 
+
+          # Store the hash into the hash of hashes
+          @attachments_hash[value] = element
+        else        
+          #   - { name: 'Low', color: '#306d8c' }
+          value = stringify_value_if_necessary(element)
+        end
+        
+        file.puts("  - #{value}")
       end
     end
 
@@ -86,6 +99,26 @@ module Jekyll
         value
       rescue NoMethodError
         value
+      end
+    end
+
+    def is_this_is_an_attachment?(value)
+      is_hash = value.class.name == 'Hash'
+      return false unless is_hash
+
+      value.keys.map(&:to_s).include?('filename')
+    end
+
+    def setup_directories
+      Dir.mkdir('_data') unless File.exists?('_data')
+      Dir.mkdir('_data/airtable') unless File.exists?('_data/airtable')      
+
+      Dir.mkdir('collections') unless File.exists?('collections')      
+    end
+
+    def write_attachments_data_file
+      File.open("_data/airtable/attachments.yml", "w") do |f| 
+        f.write(@attachments_hash.to_yaml)
       end
     end
   end
