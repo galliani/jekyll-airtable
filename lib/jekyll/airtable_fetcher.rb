@@ -24,6 +24,7 @@ module Jekyll
         converted_table_name = to_snake(table_name)
         directory_name       = "collections/_" + converted_table_name
 
+        Dir.mkdir('collections') unless File.exists?('collections')
         Dir.mkdir(directory_name) unless File.exists?(directory_name)
 
         records.each do |record|
@@ -78,8 +79,13 @@ module Jekyll
     end
 
     def stringify_value_if_necessary(value)
-      return "'#{value}'" if value.include?(':')
-      value
+      begin
+        return "'#{value}'" if value.include?(':')
+
+        value
+      rescue NoMethodError
+        value
+      end
     end
   end
 end
