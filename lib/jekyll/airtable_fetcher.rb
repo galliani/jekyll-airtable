@@ -35,9 +35,10 @@ module Jekyll
           # However, if the record has field called 'slug', it will be used instead
           pkey      = fields.keys.first
           slug      = fields['slug'].nil? ? fields[pkey] : fields['slug']
+          filename  = to_snake(slug) + '.md'
           uid       = record['id']
 
-          out_file  = File.new("#{directory_name}/#{slug}.md", "w")
+          out_file  = File.new("#{directory_name}/#{filename}", "w")
           out_file.puts(front_matter_mark)
           out_file.puts("uid: #{uid}")
 
