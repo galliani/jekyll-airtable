@@ -26,7 +26,7 @@ module Jekyll
         next if records.size == 0
 
         directory_name = "collections/_" + to_snake(table_name)
-        Dir.mkdir(dirname) unless File.exists?(directory_name)
+        Dir.mkdir(directory_name) unless File.exists?(directory_name)
 
         records.each do |record|
           fields    = record['fields']
