@@ -20,6 +20,14 @@ module Jekyll
       @table_names.each do |table_name|
         records = client.list_records(table_name: table_name)
         next if records.size == 0
+        
+        if records.class.name == 'Hash'
+          error = records["error"]
+          if error.present?
+            puts error['message']
+            next
+          end
+        end
 
         directory_name = "collections/_" + to_snake(table_name)
         Dir.mkdir(directory_name) unless File.exists?(directory_name)
@@ -32,7 +40,7 @@ module Jekyll
           fields.each do |key, value|
             snake_key = to_snake(key)
 
-            if is_a_long_text?(jekyll_config, key)
+            if is_a_long_text?(jekyll_config, table_name, key)
               write_long_text_to_file(snake_key, value, out_file)
               next
             end
@@ -138,6 +146,7 @@ module Jekyll
       # However, if the record has field called 'slug', it will be used instead
       pkey      = fields.keys.first
       slug      = fields['slug'].nil? ? fields[pkey] : fields['slug']
+      slug      = slug.length > 50 ? uid : slug
       filename  = to_snake(slug) + '.md'
 
       out_file  = File.new("#{directory_name}/#{filename}", "w")
@@ -148,9 +157,10 @@ module Jekyll
     end
 
     def is_a_long_text?(config, table_name, key)
-      table = config.airtable.tables.elect{ |a| a.name == table_name }.try(:first)
-      list  = table.try(:long_text_columns) || []
+      table = config.airtable.tables.select{ |a| a.name == table_name }.first
+      return false if table.nil?
 
+      list  = table.long_text_columns || []
       list.include?(key)
     end
 
