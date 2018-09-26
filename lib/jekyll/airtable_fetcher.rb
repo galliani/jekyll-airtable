@@ -8,7 +8,7 @@ module Jekyll
     priority :lowest      
 
     def generate(site)
-      return false if should_generate_be_prevented?
+      return false if should_generate_be_prevented?(site)
       # For storing hashes of attachments that will be saved to the data file
       @attachments_hash = {}
       setup_directories
@@ -31,7 +31,7 @@ module Jekyll
             snake_key = to_snake(key)
 
             if is_a_long_text?(key)
-              write_long_text_to_file(snake_key, out_file)
+              write_long_text_to_file(site, snake_key, out_file)
               next
             end
 
@@ -56,7 +56,7 @@ module Jekyll
 
     private
 
-    def should_generate_be_prevented?
+    def should_generate_be_prevented?(site)
       is_enabled    = site.airtable.enable_sync == 'true' || site.config['SYNC_WITH_AIRTABLE'] == 'true'
       return true if !is_enabled
 
@@ -145,7 +145,7 @@ module Jekyll
       out_file
     end
 
-    def is_a_long_text?(table_name, key)
+    def is_a_long_text?(site, table_name, key)
       table = site.airtable.tables.select{ |a| a.name == table_name }.try(:first)
       list  = table.try(:long_text_columns) || []
 
