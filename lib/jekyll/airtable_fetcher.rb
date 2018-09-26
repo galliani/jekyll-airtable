@@ -1,6 +1,7 @@
 require "json"
 require 'fileutils'
 require 'yaml'
+require 'hashie'
 
 module Jekyll
   class AirtableFetcher < Jekyll::Generator
@@ -8,7 +9,8 @@ module Jekyll
     priority :lowest      
 
     def generate(site)
-      return false if should_generate_be_prevented?(site)
+      jekyll_config = Hashie::Mash.new(site.config) 
+      return false if should_generate_be_prevented?(jekyll_config)
       # For storing hashes of attachments that will be saved to the data file
       @attachments_hash = {}
       setup_directories
@@ -30,8 +32,8 @@ module Jekyll
           fields.each do |key, value|
             snake_key = to_snake(key)
 
-            if is_a_long_text?(key)
-              write_long_text_to_file(site, snake_key, out_file)
+            if is_a_long_text?(jekyll_config, key)
+              write_long_text_to_file(snake_key, value, out_file)
               next
             end
 
@@ -56,13 +58,13 @@ module Jekyll
 
     private
 
-    def should_generate_be_prevented?(site)
-      is_enabled    = site.airtable.enable_sync == 'true' || site.config['SYNC_WITH_AIRTABLE'] == 'true'
+    def should_generate_be_prevented?(config)
+      is_enabled    = config.airtable.enable_sync == 'true'
       return true if !is_enabled
 
-      @api_key      = site.config['AIRTABLE_API_KEY']
-      @base_uid     = site.airtable.base_uid || site.config['AIRTABLE_BASE_UID']
-      @table_names  = site.airtable.tables.map{ |t| t.name } || site.config['AIRTABLE_TABLE_NAMES'].split(',')
+      @api_key      = config.to_hash['AIRTABLE_API_KEY']
+      @base_uid     = config.airtable.base_uid
+      @table_names  = config.airtable.tables.map{ |t| t.name }
 
       return true if @api_key.nil? || @api_key == '' || @base_uid.nil? || @base_uid == ''
       false
@@ -145,8 +147,8 @@ module Jekyll
       out_file
     end
 
-    def is_a_long_text?(site, table_name, key)
-      table = site.airtable.tables.select{ |a| a.name == table_name }.try(:first)
+    def is_a_long_text?(config, table_name, key)
+      table = config.airtable.tables.elect{ |a| a.name == table_name }.try(:first)
       list  = table.try(:long_text_columns) || []
 
       list.include?(key)
