@@ -59,7 +59,7 @@ module Jekyll
     private
 
     def should_generate_be_prevented?(config)
-      is_enabled    = config.airtable.enable_sync == 'true'
+      is_enabled    = config.airtable.enable_sync
       return true if !is_enabled
 
       @api_key      = config.to_hash['AIRTABLE_API_KEY']
