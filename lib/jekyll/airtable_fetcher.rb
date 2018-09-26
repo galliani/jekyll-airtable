@@ -167,7 +167,7 @@ module Jekyll
     def write_long_text_to_file(snake_key, text, out_file)
       out_file.puts("#{snake_key}: |")
 
-      lines = text.split('\n')
+      lines = text.split("\n")
 
       lines.each do |line|
         out_file.puts("  " + line)
