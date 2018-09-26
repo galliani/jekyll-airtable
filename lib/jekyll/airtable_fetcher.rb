@@ -30,6 +30,11 @@ module Jekyll
           fields.each do |key, value|
             snake_key = to_snake(key)
 
+            if is_a_long_text?(key)
+              write_long_text_to_file(snake_key, out_file)
+              next
+            end
+
             if value.class.name == 'Array'
               out_file.puts("#{snake_key}:")
               write_array_values(out_file, value)
@@ -54,10 +59,10 @@ module Jekyll
     def should_generate_be_prevented?
       is_enabled    = site.airtable.enable_sync == 'true' || site.config['SYNC_WITH_AIRTABLE'] == 'true'
       return true if !is_enabled
-      
+
       @api_key      = site.config['AIRTABLE_API_KEY']
       @base_uid     = site.airtable.base_uid || site.config['AIRTABLE_BASE_UID']
-      @table_names  = site.airtable.tables || site.config['AIRTABLE_TABLE_NAMES']
+      @table_names  = site.airtable.tables.map{ |t| t.name } || site.config['AIRTABLE_TABLE_NAMES'].split(',')
 
       return true if @api_key.nil? || @api_key == '' || @base_uid.nil? || @base_uid == ''
       false
@@ -138,6 +143,23 @@ module Jekyll
       out_file.puts("uid: #{uid}")
 
       out_file
+    end
+
+    def is_a_long_text?(table_name, key)
+      table = site.airtable.tables.select{ |a| a.name == table_name }.try(:first)
+      list  = table.try(:long_text_columns) || []
+
+      list.include?(key)
+    end
+
+    def write_long_text_to_file(snake_key, text, out_file)
+      out_file.puts("#{snake_key}: |")
+
+      lines = text.split('\n')
+
+      lines.each do |line|
+        out_file.puts("  " + line)
+      end
     end
   end
 end
