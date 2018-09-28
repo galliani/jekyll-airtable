@@ -2,6 +2,7 @@ require "json"
 require 'fileutils'
 require 'yaml'
 require 'hashie'
+require 'uri'
 
 module Jekyll
   class AirtableFetcher < Jekyll::Generator
@@ -151,7 +152,12 @@ module Jekyll
       pkey      = fields.keys.first
       slug      = fields['slug'].nil? ? fields[pkey] : fields['slug']
       slug      = slug.length > 100 ? uid : slug
-      filename  = to_dash(slug) + '.md'
+      
+      if is_an_uri?(slug)
+        filename  = to_dash(slug) + '.md'
+      else
+        filename  = to_dash(uid) + '.md'
+      end
 
       out_file  = File.new("#{directory_name}/#{filename}", "w")
       out_file.puts(front_matter_mark)
@@ -177,5 +183,18 @@ module Jekyll
         out_file.puts("  " + line)
       end
     end
+
+    def is_an_uri?(string)
+      return true if  string.include?('http') || 
+                      string.include?('://') || 
+                      string.include?('www.')
+
+      uri = URI.parse(string)
+      %w( http https ).include?(uri.scheme)
+    rescue URI::BadURIError
+      false
+    rescue URI::InvalidURIError
+      false
+    end    
   end
 end
