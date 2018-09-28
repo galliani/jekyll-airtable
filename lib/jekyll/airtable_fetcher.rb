@@ -61,7 +61,7 @@ module Jekyll
         end
       end
 
-      write_attachments_data_file
+      write_attachments_data_file if @attachments_hash.keys.size > 0
     end
 
     private
@@ -91,6 +91,10 @@ module Jekyll
     def to_snake(string)
       string.split(' ').map(&:downcase).join('_')
     end
+
+    def to_dash(string)
+      string.split(' ').map(&:downcase).join('-')
+    end    
 
     def write_array_values(file, array)
       array.each do |element|
@@ -146,8 +150,8 @@ module Jekyll
       # However, if the record has field called 'slug', it will be used instead
       pkey      = fields.keys.first
       slug      = fields['slug'].nil? ? fields[pkey] : fields['slug']
-      slug      = slug.length > 50 ? uid : slug
-      filename  = to_snake(slug) + '.md'
+      slug      = slug.length > 100 ? uid : slug
+      filename  = to_dash(slug) + '.md'
 
       out_file  = File.new("#{directory_name}/#{filename}", "w")
       out_file.puts(front_matter_mark)
