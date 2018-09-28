@@ -27,11 +27,11 @@ run bundle install again
 .env
 ```
 
-3. Copy the .env.example in this repo to the root of your project, rename it to .env then fill it for your needs.
-4. Set the SYNC_WITH_AIRTABLE key in the .env to 'true'
+3. Copy the .env.example in this repo to the root of your project, rename it to .env.
+4. Set your Airtable API Key in the .env
 
 ```
-SYNC_WITH_AIRTABLE='true'
+AIRTABLE_API_KEY='your_airtable_api_key'
 ```
 
 5. You need to add a custom plugin to get the dotenv to work, you do this by creating a folder ```_plugins``` (if does not exist already) inside your Jekyll repo
@@ -49,10 +49,7 @@ module Jekyll
       Dotenv.overload
       site.config['env'] = Dotenv.overload
 
-      site.config['SYNC_WITH_AIRTABLE'] = ENV['SYNC_WITH_AIRTABLE']
       site.config['AIRTABLE_API_KEY']   = ENV['AIRTABLE_API_KEY']
-      site.config['AIRTABLE_BASE_UID']  = ENV['AIRTABLE_BASE_UID']
-      site.config['AIRTABLE_TABLE_NAMES'] = ENV['AIRTABLE_TABLE_NAMES'].split(',').map(&:strip)
     end
   end
 end
@@ -60,11 +57,21 @@ end
 
 Now the secret keys can be accessed by Jekyll without being visible to the public.
 
-7. Now, you need to declare the plugins in the config.yml
+7. Now, you need to declare and hook the plugins in the config.yml
 ```yml
 plugins:
   - jekyll-airtable
   - environment_variables_generator
+
+airtable:
+  enable_sync: true
+  base_uid: 'appp7C1MblPCnMePn'
+  tables:
+    - name: 'Use Cases' 
+    - name: 'Whitepapers'    
+    - name: 'Quotes'
+      long_text_columns:
+        - 'column name'
 ```
 
 8. Finally, you can execute the plugin using ```sh bundle exec jekyll serve ``` or ```sh bundle exec jekyll build ```
@@ -80,8 +87,6 @@ collections:
     output: true
   whitepapers:
     output: true
-  tutorials:
-    output: true
 
 defaults:
   - scope:
@@ -89,6 +94,18 @@ defaults:
     values:
       layout: "page" # any jekyll layout file you already have in the _layouts that you want to use for this collection type.
 ```
+
+
+## Conventions
+
+There are a number of "enforced" conventions you have to know and can take advantage of. 
+
+1. By default, the slug of the record (which is the file name) come from this sources, in order of priority: 1) The column labelled 'Slug' / 'slug' in your Airtable table, 2) The primary key of each row (the first column on each table), 3) or the Airtable UID of the record. So if you want to set each record's slug manually, you can do so by creating slug column in your Airtable table.**GOTCHA:** Should slugs that are derived from priority 1 and 2 are both longer than 100 char, then it will automatically use the Airtable UID.
+
+2. Attachments are not copied into your Jekyll repo but their informations, such as url and so on, will be stored in "_data/airtable/attachments.yml_" folder, if none exist before, this plugin will automatically create it for you.
+
+
+3. Long text with paragraphs are now supported.
 
 ## Development
 
